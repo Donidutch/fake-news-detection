@@ -5,7 +5,7 @@ with an evaluation setup that measures how much of the score is real signal and 
 recognising the publishing website.
 
 This is a rebuild of my 2019 group project for the Data Science course at the University of Copenhagen
-([original repo](https://github.com/Donidutch/FakenewDetection), with Niels-Christian, Simon and Ayman).
+(with Niels-Christian, Simon and Ayman).
 The original used notebooks, a PostgreSQL database, TF-IDF with linear models, and CNN/LSTM models on
 GloVe embeddings. This version is a tested Python package with a fine-tuned transformer and a stricter
 evaluation.
