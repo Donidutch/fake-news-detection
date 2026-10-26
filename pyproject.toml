@@ -22,12 +22,17 @@ transformer = [
 demo = [
     "gradio>=4.40",
 ]
+db = [
+    "psycopg[binary]>=3.2",
+]
 
 [project.scripts]
 fakenews = "fakenews.cli:main"
 
 [dependency-groups]
 dev = [
+    "pgserver>=0.1.4",
+    "psycopg[binary]>=3.2",
     "pytest>=8",
     "ruff>=0.6",
 ]

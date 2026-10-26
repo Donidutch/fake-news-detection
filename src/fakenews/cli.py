@@ -1,4 +1,5 @@
-"""Command line entry point: ``fakenews <prepare|baseline|transformer|liar-reference|report>``."""
+"""Command line entry point:
+``fakenews <prepare|load-db|db-stats|baseline|transformer|liar-reference|report>``."""
 
 import argparse
 import json
@@ -12,7 +13,14 @@ from fakenews import baseline, config, data
 from fakenews.evaluate import metrics
 
 
-def _load_corpus() -> pd.DataFrame:
+def _load_corpus(args=None) -> pd.DataFrame:
+    if args is not None and getattr(args, "from_db", False):
+        import psycopg
+
+        from fakenews import db
+
+        with psycopg.connect(db.dsn_from_env(args.dsn)) as conn:
+            return db.read_corpus(conn)
     if not config.CORPUS_PARQUET.exists():
         raise SystemExit(f"{config.CORPUS_PARQUET} missing, run `fakenews prepare` first")
     return pd.read_parquet(config.CORPUS_PARQUET)
@@ -49,8 +57,29 @@ def cmd_prepare(args) -> None:
     _write("corpus_stats", stats)
 
 
+def cmd_load_db(args) -> None:
+    import psycopg
+
+    from fakenews import db
+
+    df = _load_corpus()
+    with psycopg.connect(db.dsn_from_env(args.dsn)) as conn:
+        inserted = db.load(conn, df)
+        print(f"inserted {inserted} of {len(df)} articles ({len(df) - inserted} already stored)")
+        _write("db_stats", db.stats(conn))
+
+
+def cmd_db_stats(args) -> None:
+    import psycopg
+
+    from fakenews import db
+
+    with psycopg.connect(db.dsn_from_env(args.dsn)) as conn:
+        print(json.dumps(db.stats(conn), indent=2))
+
+
 def cmd_baseline(args) -> None:
-    train, _, test = data.split(_load_corpus(), args.split, seed=args.seed)
+    train, _, test = data.split(_load_corpus(args), args.split, seed=args.seed)
     model = baseline.build()
     model.fit(train["content"].tolist(), train["label"].to_numpy())
     baseline.save(model, config.MODELS_DIR / f"baseline_{args.split}.joblib")
@@ -63,7 +92,7 @@ def cmd_baseline(args) -> None:
 def cmd_transformer(args) -> None:
     from fakenews import transformer
 
-    train, val, test = data.split(_load_corpus(), args.split, seed=args.seed)
+    train, val, test = data.split(_load_corpus(args), args.split, seed=args.seed)
     if args.max_train:
         train = train.sample(min(args.max_train, len(train)), random_state=args.seed)
     cfg = transformer.TrainConfig(
@@ -137,12 +166,28 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--seed", type=int, default=0)
     p.set_defaults(func=cmd_prepare)
 
-    p = sub.add_parser("baseline", help="train and evaluate TF-IDF + logistic regression")
+    p = sub.add_parser("load-db", help="load data/processed into PostgreSQL")
+    p.add_argument("--dsn", help="PostgreSQL connection string (default: $FAKENEWS_DSN)")
+    p.set_defaults(func=cmd_load_db)
+
+    p = sub.add_parser("db-stats", help="corpus statistics computed in PostgreSQL")
+    p.add_argument("--dsn", help="PostgreSQL connection string (default: $FAKENEWS_DSN)")
+    p.set_defaults(func=cmd_db_stats)
+
+    db_args = argparse.ArgumentParser(add_help=False)
+    db_args.add_argument("--from-db", action="store_true", help="read the corpus from PostgreSQL")
+    db_args.add_argument("--dsn", help="PostgreSQL connection string (default: $FAKENEWS_DSN)")
+
+    p = sub.add_parser(
+        "baseline", parents=[db_args], help="train and evaluate TF-IDF + logistic regression"
+    )
     p.add_argument("--split", choices=data.SPLITS, default="domain")
     p.add_argument("--seed", type=int, default=0)
     p.set_defaults(func=cmd_baseline)
 
-    p = sub.add_parser("transformer", help="fine-tune and evaluate a transformer")
+    p = sub.add_parser(
+        "transformer", parents=[db_args], help="fine-tune and evaluate a transformer"
+    )
     p.add_argument("--split", choices=data.SPLITS, default="domain")
     p.add_argument("--model", default="roberta-base")
     p.add_argument("--epochs", type=int, default=2)

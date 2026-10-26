@@ -4,11 +4,10 @@ Classifying news articles as reliable or unreliable on [FakeNewsCorpus](https://
 with an evaluation setup that measures how much of the score is real signal and how much is the model
 recognising the publishing website.
 
-This is a rebuild of my 2019 group project for the Data Science course at the University of Copenhagen
-(with Niels-Christian, Simon and Ayman).
-The original used notebooks, a PostgreSQL database, TF-IDF with linear models, and CNN/LSTM models on
-GloVe embeddings. This version is a tested Python package with a fine-tuned transformer and a stricter
-evaluation.
+This is my independent rebuild of a 2019 group project for the Data Science course at the University
+of Copenhagen (with Niels-Christian, Simon and Ayman). The original used notebooks, a PostgreSQL
+database, TF-IDF with linear models, and CNN/LSTM models on GloVe embeddings. This version is a tested
+Python package with a normalised PostgreSQL store, a fine-tuned transformer and a stricter evaluation.
 
 ## The problem with the obvious setup
 
@@ -72,6 +71,30 @@ content hash (a bottom-k sample), so a few huge sites can't dominate. Exact dupl
 The 2019 version counted bias, clickbait, rumor and unknown as REAL. Those are dropped here because they
 are neither reliable nor fake.
 
+### PostgreSQL
+
+The sample can be stored in PostgreSQL (`src/fakenews/db.py`) and the models trained from it.
+
+```
+domain        (id, name UNIQUE)
+article_type  (id, name UNIQUE, label 0/1)
+article       (id, domain_id -> domain, type_id -> article_type, title, content, content_hash UNIQUE)
+```
+
+- **Normalised:** a site and a type are stored once and referenced by foreign key, so the
+  type-to-label mapping lives in one row instead of on 200,000 articles.
+- **Deduplicated:** `content_hash` is the SHA-256 of the text, so the same article is stored once
+  and loading the same data again inserts nothing.
+- **Bulk loaded:** rows go through `COPY` into a staging table and then one `INSERT ... SELECT` with
+  joins, all in one transaction, so a failed load leaves no partial data. Article ids follow the input
+  order, so training from the database gives the same splits as training from the Parquet file.
+- **Queried in SQL:** `fakenews db-stats` computes the corpus statistics with `GROUP BY` aggregates
+  and `percentile_cont`.
+
+On the full sample: 200,000 articles from 377 domains load in about 20 seconds into PostgreSQL 16
+(473 MB including indexes), a second load inserts 0 rows, and `baseline --split domain --from-db`
+reproduces the domain-split result above exactly.
+
 ## Models
 
 - **TF-IDF + logistic regression**: word uni- and bigrams, sublinear TF, 200k features.
@@ -96,6 +119,15 @@ uv run fakenews report                        # results/RESULTS.md
 uv run python -m fakenews.app                 # Gradio demo
 ```
 
+With PostgreSQL (for example `docker run -d -e POSTGRES_PASSWORD=pw -p 5432:5432 postgres:16`):
+
+```bash
+export FAKENEWS_DSN=postgresql://postgres:pw@localhost:5432/postgres
+uv run fakenews load-db                       # data/processed -> PostgreSQL
+uv run fakenews db-stats                      # statistics computed in SQL
+uv run fakenews baseline --split domain --from-db
+```
+
 The demo shows both models' probability and which terms pushed the TF-IDF model's decision.
 
 ## Layout
@@ -104,13 +136,15 @@ The demo shows both models' probability and which terms pushed the TF-IDF model'
 src/fakenews/
   config.py        paths and label mappings
   data.py          streaming sampler, LIAR loader, random/domain splits
+  db.py            PostgreSQL schema, bulk load, SQL queries
   preprocess.py    text cleaning
   baseline.py      TF-IDF + logistic regression
   transformer.py   PyTorch fine-tuning loop
   evaluate.py      accuracy, macro F1, ROC AUC
   cli.py           command line
   app.py           Gradio demo
-tests/             pytest on synthetic data (no downloads needed)
+tests/             pytest on synthetic data (no downloads needed); the database tests run
+                   against a real PostgreSQL (a service container in CI, pgserver locally)
 results/           JSON metrics per run and RESULTS.md
 ```
 

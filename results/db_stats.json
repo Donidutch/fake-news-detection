@@ -1,0 +1,30 @@
+{
+  "rows": 200000,
+  "domains": 377,
+  "median_chars": 2663.0,
+  "by_type": {
+    "reliable": 61909,
+    "conspiracy": 40827,
+    "political": 38091,
+    "fake": 20914,
+    "unreliable": 17237,
+    "junksci": 12964,
+    "hate": 8058
+  },
+  "by_label": {
+    "REAL": 100000,
+    "FAKE": 100000
+  },
+  "top_domains": {
+    "edition.cnn.com": 869,
+    "cnnnext.com": 868,
+    "greanvillepost.com": 867,
+    "investmentresearchdynamics.com": 866,
+    "barenakedislam.com": 865,
+    "wikileaks.org": 865,
+    "www.chron.com": 865,
+    "news.abs-cbn.com": 864,
+    "theduran.com": 864,
+    "thefreethoughtproject.com": 863
+  }
+}
