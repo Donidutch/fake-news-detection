@@ -1,0 +1,63 @@
+{
+  "model": "tfidf_logreg",
+  "split": "domain",
+  "train_rows": 159940,
+  "fakenewscorpus_test": {
+    "n": 20100,
+    "accuracy": 0.7938308457711443,
+    "macro_f1": 0.793716128226592,
+    "roc_auc": 0.878392900990099
+  },
+  "liar_test": {
+    "n": 1283,
+    "accuracy": 0.5479345284489477,
+    "macro_f1": 0.5319638723960954,
+    "roc_auc": 0.5384897034229563
+  },
+  "top_features": {
+    "FAKE": [
+      "advertisements",
+      "source",
+      "com",
+      "shares",
+      "it news",
+      "breakpoint",
+      "advertisment",
+      "rt",
+      "infowars",
+      "urltoken",
+      "the phaser",
+      "phaser",
+      "twitter if",
+      "tlb",
+      "view gallery",
+      "www",
+      "and twitter",
+      "president trump",
+      "follow us",
+      "reading"
+    ],
+    "REAL": [
+      "photo",
+      "nov",
+      "2016",
+      "getty",
+      "november",
+      "november 2016",
+      "ap",
+      "more from",
+      "share",
+      "share save",
+      "reuters",
+      "getty images",
+      "freedomworks",
+      "fusion",
+      "images",
+      "pm",
+      "theblaze",
+      "share this",
+      "tfc",
+      "home archives"
+    ]
+  }
+}

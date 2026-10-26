@@ -1,0 +1,17 @@
+{
+  "rows": 200000,
+  "domains": 377,
+  "by_type": {
+    "reliable": 61909,
+    "conspiracy": 40827,
+    "political": 38091,
+    "fake": 20914,
+    "unreliable": 17237,
+    "junksci": 12964,
+    "hate": 8058
+  },
+  "by_label": {
+    "REAL": 100000,
+    "FAKE": 100000
+  }
+}

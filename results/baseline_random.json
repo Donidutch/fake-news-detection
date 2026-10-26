@@ -1,0 +1,63 @@
+{
+  "model": "tfidf_logreg",
+  "split": "random",
+  "train_rows": 160000,
+  "fakenewscorpus_test": {
+    "n": 20000,
+    "accuracy": 0.87475,
+    "macro_f1": 0.874747173983113,
+    "roc_auc": 0.95231178
+  },
+  "liar_test": {
+    "n": 1283,
+    "accuracy": 0.5206547155105222,
+    "macro_f1": 0.5191403524274715,
+    "roc_auc": 0.5348950550701117
+  },
+  "top_features": {
+    "FAKE": [
+      "advertisements",
+      "source",
+      "snip",
+      "com",
+      "article share",
+      "original article",
+      "it news",
+      "shares",
+      "urltoken",
+      "breakpoint",
+      "the phaser",
+      "phaser",
+      "advertisment",
+      "below",
+      "via",
+      "rt",
+      "www",
+      "continue reading",
+      "follow us",
+      "dr"
+    ],
+    "REAL": [
+      "nov",
+      "photo",
+      "2016",
+      "getty",
+      "november",
+      "november 2016",
+      "ap",
+      "getty images",
+      "more from",
+      "yahoo7",
+      "images",
+      "reuters",
+      "on twitter",
+      "up next",
+      "email",
+      "share save",
+      "pm",
+      "freedomworks",
+      "share",
+      "fusion"
+    ]
+  }
+}

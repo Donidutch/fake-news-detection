@@ -1,0 +1,40 @@
+{
+  "model": "roberta-base",
+  "split": "random",
+  "train_rows": 50000,
+  "fakenewscorpus_test": {
+    "n": 20000,
+    "accuracy": 0.92315,
+    "macro_f1": 0.9231498799216874,
+    "roc_auc": 0.9802787900000001
+  },
+  "liar_test": {
+    "n": 1283,
+    "accuracy": 0.5572876071706937,
+    "macro_f1": 0.5285041407867495,
+    "roc_auc": 0.5329839292252581
+  },
+  "training": {
+    "best_val_macro_f1": 0.9209998451596966,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.2887980995922613,
+        "seconds": 412.03227639198303,
+        "val_n": 20000,
+        "val_accuracy": 0.90585,
+        "val_macro_f1": 0.9054742314760724,
+        "val_roc_auc": 0.975649075
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.1575880940152679,
+        "seconds": 468.68686604499817,
+        "val_n": 20000,
+        "val_accuracy": 0.921,
+        "val_macro_f1": 0.9209998451596966,
+        "val_roc_auc": 0.97955545
+      }
+    ]
+  }
+}
